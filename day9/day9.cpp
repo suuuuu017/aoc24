@@ -47,50 +47,49 @@ unsigned long long compact(map<int, int, std::greater<int>> fMap, vector<int> sp
     return res;
 }
 
-unsigned long long compact2(map<int, int, std::greater<int>> fMap, vector<int> space){
+unsigned long long compact2(map<int, int, std::greater<int>> fMap, vector<int> space,
+                            vector<vector<int>> space2pos, map<int, int> idx2pos){
     int pos = 0 + fMap[0];
     unsigned long long res = 0;
 
-    auto itB = fMap.begin();
-    auto itE = prev(prev(fMap.end()));
+//    for(int i = 0; i < space2pos.size(); i++){
+//        cout << "spaceSize " << space2pos[i][0] << " pos is " << space2pos[i][1] << endl;
+//    }
+//    for(auto & a : idx2pos){
+//        cout << "idx " << a.first << " pos is " << a.second << endl;
+//    }
 
-    while(!space.empty() && fMap.size() > 1){
-        int currSpace = space.front();
-        space.erase(space.begin());
+    int i = 0;
 
-        if(currSpace >= itB->second) {
-            while(itB->second > 0) {
-                if (itB->first == 0) {
-                    return res;
-                }
-                cout << " moved " << pos << " " << itB->first << endl;
-                res = res + pos * itB->first;
-                itB->second--;
-                pos++;
+//    while(!space.empty() && fMap.size() > 1){
+        auto curr = fMap.begin();
+
+
+        while(curr->first != 0) {
+//            cout << " current procssing "  << curr->first << endl;
+            i = 0;
+            int currSize = space[i];
+            while (currSize < curr->second && i < space.size()) {
+                i++;
+                currSize = space[i];
             }
-            fMap.erase(itB);
-            itB = fMap.begin();
+            if (i < space.size() && space2pos[i][1] < idx2pos[curr->first]) {
+//                cout << "found space " << space2pos[i][1] << " space size " << space[i] << endl;
+                idx2pos[curr->first] = space2pos[i][1];
+                space[i] = space[i] - curr->second;
+                space2pos[i][1] = space2pos[i][1] + curr->second;
+            }
+            advance(curr, 1);
         }
-        else{
-            pos = pos + currSpace;
-            while(itE->second >= 0) {
-                if (itE->first == 0) {
-                    return res;
-                }
-                if (itE->second == 0) {
-                    fMap.erase(itE);
-                }
-                cout << "in order " << pos << " " << itB->first << endl;
-                res = res + pos * itE->first;
-                itE->second--;
-                pos++;
-            }
-            itE = prev(prev(fMap.end()));
+//    }
+    for(auto & a : idx2pos){
+//        cout << "idx " << a.first << " pos is " << a.second << endl;
+        int l = fMap[a.first];
+        for(int j = 0; j < l; j++){
+            res = res + (a.second + j) * a.first;
         }
     }
-    for(auto & it : fMap) {
-        cout << it.first << " " << it.second << endl;
-    }
+
 
     return res;
 }
@@ -110,18 +109,27 @@ int main(int argc, char* argv[]) {
     int fileIdx = 0;
     map<int, int, std::greater<int>> fMap;
     vector<int> space;
-    map<int, int> spaceMsp;
+
+    vector<vector<int>> space2pos;
+    map<int, int> idx2pos;
+    int pos = 0;
 
     while(is >> scan){
         if(f){
             fMap[fileIdx] = scan - '0';
-            fileIdx++;
             f = false;
+
+            idx2pos[fileIdx] = pos;
+            pos = pos + scan - '0';
+
+            fileIdx++;
         }
         else if(!f){
             space.push_back(scan - '0');
             f = true;
 
+            space2pos.push_back({scan - '0', pos});
+            pos = pos + scan - '0';
         }
     }
 
@@ -135,12 +143,12 @@ int main(int argc, char* argv[]) {
 
     file.close();
 
-    cout << "idx is " << fileIdx << endl;
-    unsigned long long res = compact(fMap, space);
-    cout << res << endl;
+//    cout << "idx is " << fileIdx << endl;
+//    unsigned long long res = compact(fMap, space);
+//    cout << res << endl;
 
-//    unsigned long long res2 = compact2(fMap, space);
-//    cout << res2 << endl;
+    unsigned long long res2 = compact2(fMap, space, space2pos, idx2pos);
+    cout << res2 << endl;
 
     return 0;
 }
