@@ -7,6 +7,7 @@
 #include <set>
 #include <algorithm>
 #include <numeric>
+#include <chrono>
 
 using namespace std;
 
@@ -147,7 +148,12 @@ int main(int argc, char* argv[]) {
 //    unsigned long long res = compact(fMap, space);
 //    cout << res << endl;
 
+    auto start = std::chrono::high_resolution_clock::now();
     unsigned long long res2 = compact2(fMap, space, space2pos, idx2pos);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+    std::cout << " took " << duration.count() << " microseconds." << std::endl;
     cout << res2 << endl;
 
     return 0;
