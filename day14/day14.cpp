@@ -30,78 +30,94 @@ int main(int argc, char* argv[]) {
 //    pair<int, int> res = move(curr, sec, vel, r, c);
 //    cout << res.first << " " << res.second << endl;
 
-    int sec = 100;
+    int sec = 6000;
     int r = 103;
     int c = 101;
+    map<pair<int, int>, int> m;
 
-//    int r = 7;
-//    int c = 11;
+    int quat1 = 110;
+    int quat2 = 0;
+    int quat3 = 110;
+    int quat4 = 0;
 
     string filename = argv[1];
     ifstream file(filename);
-    string line;
 
-    map<pair<int, int>, int> m;
-
-    while (getline(file, line)) {
-        for (char & ch : line){
-            if (ch == '=' || ch == ',' || ch == 'p' || ch == 'v'){
-                ch = ' ';
+//    int r = 7;
+//    int c = 11;
+    for(sec = 7410; sec < 7810; sec = sec + 5) {
+//        if(abs(quat1 + quat3 - (quat2 + quat4)) < 100){
+            cout << sec << endl;
+            for (int i = 0; i < r; i++) {
+                for (int j = 0; j < c; j++) {
+                    if (m.find({i, j}) != m.end()) {
+                        cout << "#";
+                    }
+                    else {
+                        cout << " ";
+                    }
+                }
+                cout << endl;
             }
-        }
-        istringstream stream(line);
+//        }
 
-        pair<int, int> curr;
-        pair<int, int> vel;
-        stream >> curr.first >> curr.second >> vel.first >> vel.second;
+        m.clear();
+        file.clear();
+        file.seekg(0);
+
+        quat1 = 0;
+        quat2 = 0;
+        quat3 = 0;
+        quat4 = 0;
+
+        string line;
+        while (getline(file, line)) {
+            for (char &ch: line) {
+                if (ch == '=' || ch == ',' || ch == 'p' || ch == 'v') {
+                    ch = ' ';
+                }
+            }
+            istringstream stream(line);
+
+            pair<int, int> curr;
+            pair<int, int> vel;
+            stream >> curr.first >> curr.second >> vel.first >> vel.second;
 //        cout << curr.first << " " << curr.second << endl;
 //        cout << vel.first << " " << vel.second << endl;
 
-        pair<int, int> res = move(curr, sec, vel, r, c);
-        m[res]++;
+            pair<int, int> res = move(curr, sec, vel, r, c);
+            m[res]++;
+        }
+
+
+        for (auto itr: m) {
+            if (itr.first.first < r / 2 && itr.first.second < c / 2) {
+//            cout << "quat 1 " << itr.first.first << " " << itr.first.second << endl;
+                quat1 += itr.second;
+            }
+            if (itr.first.first < r / 2 && itr.first.second > c / 2) {
+//            cout << "quat 2 " << itr.first.first << " " << itr.first.second << endl;
+                quat2 += itr.second;
+            }
+            if (itr.first.first > r / 2 && itr.first.second < c / 2) {
+//            cout << "quat 3 " << itr.first.first << " " << itr.first.second << endl;
+                quat3 += itr.second;
+            }
+            if (itr.first.first > r / 2 && itr.first.second > c / 2) {
+//            cout << "quat 4 " << itr.first.first << " " << itr.first.second << endl;
+                quat4 += itr.second;
+            }
+//        cout << itr.first.first << "," << itr.first.second << " : " << itr.second << endl;
+        }
+        cout << "Quarter 1 : " << quat1 << endl;
+        cout << "Quarter 2 : " << quat2 << endl;
+        cout << "Quarter 3 : " << quat3 << endl;
+        cout << "Quarter 4 : " << quat4 << endl;
+//        long res = quat1 * quat2 * quat3 * quat4;
+//        cout << res << endl;
+
     }
     file.close();
-
-    int quat1 = 0;
-    int quat2 = 0;
-    int quat3 = 0;
-    int quat4 = 0;
-
-    for(auto itr : m){
-        if(itr.first.first < r / 2 && itr.first.second < c / 2){
-//            cout << "quat 1 " << itr.first.first << " " << itr.first.second << endl;
-            quat1 += itr.second;
-        }
-        if(itr.first.first < r / 2 && itr.first.second > c / 2){
-//            cout << "quat 2 " << itr.first.first << " " << itr.first.second << endl;
-            quat2 += itr.second;
-        }
-        if(itr.first.first > r / 2 && itr.first.second < c / 2){
-//            cout << "quat 3 " << itr.first.first << " " << itr.first.second << endl;
-            quat3 += itr.second;
-        }
-        if(itr.first.first > r / 2 && itr.first.second > c / 2){
-//            cout << "quat 4 " << itr.first.first << " " << itr.first.second << endl;
-            quat4 += itr.second;
-        }
-//        cout << itr.first.first << "," << itr.first.second << " : " << itr.second << endl;
-    }
-    cout << "Quarter 1 : " << quat1 << endl;
-    cout << "Quarter 2 : " << quat2 << endl;
-    cout << "Quarter 3 : " << quat3 << endl;
-    cout << "Quarter 4 : " << quat4 << endl;
-    long res = quat1 * quat2 * quat3 * quat4;
-    cout << res << endl;
-
-//    for(int i = 0; i < r ; i++){
-//        for(int j = 0; j < c; j++){
-//            if(m.find({i, j}) != m.end()){
-//                cout << "#";
-//            }
-//            cout << " ";
-//        }
-//        cout << endl;
-//    }
 
     return 0;
 }
