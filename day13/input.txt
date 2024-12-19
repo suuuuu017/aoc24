@@ -1277,4 +1277,3 @@ Prize: X=7430, Y=18378
 Button A: X+57, Y+27
 Button B: X+22, Y+48
 Prize: X=4328, Y=4380
-
