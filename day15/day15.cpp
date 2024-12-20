@@ -7,6 +7,8 @@
 #include <set>
 #include <algorithm>
 #include <numeric>
+#include <queue>
+#include <stack>
 
 using namespace std;
 
@@ -44,7 +46,103 @@ void simulate(vector<vector<char>> & maze, vector<char> dir, vector<int> & robot
     }
 }
 
+void simulate2(vector<vector<char>> & maze, vector<char> dir, vector<int> & robot){
+    map<char, vector<int>> lookup = {
+            {'^', {-1, 0}},
+            {'v', {1, 0}},
+            {'<', {0, -1}},
+            {'>', {0, 1}}
+    };
+    for(int i = 0; i < dir.size(); i++) {
+        int tmpX = robot[0] + lookup[dir[i]][0];
+        int tmpY = robot[1] + lookup[dir[i]][1];
+//        cout << "here " << tmpX << " " << tmpY << endl;
+
+        if (maze[tmpX][tmpY] == '#') {
+            continue;
+        }
+        else if(maze[tmpX][tmpY] == '[' || maze[tmpX][tmpY] == ']'){
+//            cout << "here " << tmpX << " " << tmpY << endl;
+            if(dir[i] == '<' || dir[i] == '>'){
+                stack<vector<int>> s;
+                while(maze[tmpX][tmpY] != '#'){
+                    tmpX += lookup[dir[i]][0];
+                    tmpY += lookup[dir[i]][1];
+                    cout << "here " << tmpX << " " << tmpY << endl;
+                    s.push({tmpX, tmpY});
+                    if(maze[tmpX][tmpY] == '.' || maze[tmpX][tmpY] == '@'){
+                        bool f = true;
+                        while(!s.empty()){
+                            int currX = s.top()[0];
+                            int currY = s.top()[1];
+                            if(dir[i] == '<' && f){
+                                maze[currX][currY] = '[';
+                                f = false;
+                            }
+                            else if(dir[i] == '<' && !f){
+                                maze[currX][currY] = ']';
+                                f = true;
+                            }
+                            else if(dir[i] == '>' && f){
+                                maze[currX][currY] = ']';
+                                f = false;
+                            }
+                            else if(dir[i] == '>' && !f){
+                                maze[currX][currY] = '[';
+                                f = true;
+                            }
+                            s.pop();
+                        }
+                        robot[0] += lookup[dir[i]][0];
+                        robot[1] += lookup[dir[i]][1];
+                        maze[robot[0]][robot[1]] = '.';
+                        break;
+                    }
+                }
+            }
+            if(dir[i] == '^' || dir[i] == 'v'){
+                vector<vector<int>> radius;
+                radius.push_back({tmpX, tmpY});
+                if(maze[tmpX][tmpY] == '['){
+                    radius.push_back({tmpX, tmpY + 1});
+                }
+                else if(maze[tmpX][tmpY] == ']'){
+                    radius.push_back({tmpX, tmpY - 1});
+                }
+                while(radius.empty()){
+                    int currX = radius.front()[0];
+                    int currY = radius.front()[1];
+                    radius.erase(radius.begin());
+                    int nextX = currX + lookup[dir[i]][0];
+                    if(maze[nextX][currY] == '#'){
+                        break;
+                    }
+                    if(maze[nextX][currY] != maze[currX][currY]){
+                        if(maze[nextX][currY] == '['){
+                            radius.push_back({nextX, currY + 1});
+                        }
+                        else if(maze[nextX][currY] == ']'){
+                            radius.push_back({nextX, currY - 1});
+                        }
+                        radius.push_back({nextX, currY});
+                    }
+                    if(maze[nextX][currY] == maze[currX][currY]){
+                        radius.push_back({nextX, currY});
+                    }
+                }
+            }
+        }
+        else{
+            robot[0] = tmpX;
+            robot[1] = tmpY;
+        }
+    }
+}
+
+
 int main(int argc, char* argv[]) {
+    int part = stoi(argv[2]);
+
     string filename = argv[1];
     ifstream file(filename);
     string line;
@@ -78,11 +176,17 @@ int main(int argc, char* argv[]) {
             vector<char> tmp;
 
             while (stream >> scan) {
-                tmp.push_back(scan);
+                if(part == 1) {
+                    tmp.push_back(scan);
+                }
 
                 if (scan == '@') {
                     robot.push_back(row);
                     robot.push_back(col);
+                    if(part == 2) {
+                        tmp.push_back(scan);
+                        tmp.push_back('.');
+                    }
                 }
 
                 if (scan == 'O') {
@@ -90,6 +194,10 @@ int main(int argc, char* argv[]) {
                     b.first = row;
                     b.second = col;
                     box.push_back(b);
+                    if(part == 2) {
+                        tmp.push_back('[');
+                        tmp.push_back(']');
+                    }
                 }
 
                 if (scan == '#') {
@@ -97,6 +205,18 @@ int main(int argc, char* argv[]) {
                     o.first = row;
                     o.second = col;
                     obs.push_back(o);
+                    if(part == 2) {
+                        tmp.push_back(scan);
+                        tmp.push_back('#');
+                    }
+                }
+
+                if(part == 2) {
+                    if (scan == '.') {
+                        tmp.push_back('.');
+                        tmp.push_back('.');
+                    }
+                    col++;
                 }
 
                 col++;
@@ -128,30 +248,44 @@ int main(int argc, char* argv[]) {
 //        cout << "obstacles at " << obs[i].first << " " << obs[i].second << endl;
 //    }
 //
-//    for(int i = 0; i < maze.size(); i++){
-//        for(int j = 0; j < maze[0].size(); j++){
-//            cout << maze[i][j];
-//        }
-//        cout << endl;
-//    }
+    for(int i = 0; i < maze.size(); i++){
+        for(int j = 0; j < maze[0].size(); j++){
+            cout << maze[i][j];
+        }
+        cout << endl;
+    }
 //    for(int i = 0; i < dir.size(); i++){
 //        cout << dir[i];
 //    }
 //    cout << endl;
 
-    simulate(maze, dir, robot);
+    if(part == 1) {
+        simulate(maze, dir, robot);
 
-    int res = 0;
-    for(int i = 0; i < maze.size(); i++){
-        for(int j = 0; j < maze[0].size(); j++){
-            cout << maze[i][j];
-            if(maze[i][j] == 'O'){
-                res = res + i * 100 + j;
+        int res = 0;
+        for (int i = 0; i < maze.size(); i++) {
+            for (int j = 0; j < maze[0].size(); j++) {
+                cout << maze[i][j];
+                if (maze[i][j] == 'O') {
+                    res = res + i * 100 + j;
+                }
             }
+            cout << endl;
         }
-        cout << endl;
+
+        cout << "result is " << res << endl;
     }
 
-    cout << "result is " << res << endl;
+    if(part == 2) {
+        simulate2(maze, dir, robot);
+
+        for (int i = 0; i < maze.size(); i++) {
+            for (int j = 0; j < maze[0].size(); j++) {
+                cout << maze[i][j];
+            }
+            cout << endl;
+        }
+
+    }
     return 0;
 }
