@@ -99,18 +99,21 @@ int main(int argc, char* argv[]){
 
     long long res = 0;
 
-    while (getline(file, line)) {
+    while (!file.eof()) {
         string block;
 //        vector<int> nums;
 
         vector<long long> nums;
 
-        while(!line.empty()){
-            block = block + line;
-            getline(file, line);
-            if(file.eof()){
+        while(getline(file, line)){
+            if(line.empty()){
                 break;
             }
+            block = block + line;
+//            getline(file, line);
+//            if(file.eof()){
+//                break;
+//            }
         }
 //        cout << block << endl;
         regex numberPattern("[-]?\\d+");

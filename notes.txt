@@ -1,0 +1,3 @@
+day11 dp
+day13 linear alg
+day14 better solution than printing??

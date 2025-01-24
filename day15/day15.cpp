@@ -53,6 +53,7 @@ void simulate2(vector<vector<char>> & maze, vector<char> dir, vector<int> & robo
             {'<', {0, -1}},
             {'>', {0, 1}}
     };
+    maze[robot[0]][robot[1]] = '.';
     for(int i = 0; i < dir.size(); i++) {
         int tmpX = robot[0] + lookup[dir[i]][0];
         int tmpY = robot[1] + lookup[dir[i]][1];
@@ -101,34 +102,52 @@ void simulate2(vector<vector<char>> & maze, vector<char> dir, vector<int> & robo
                 }
             }
             if(dir[i] == '^' || dir[i] == 'v'){
-                vector<vector<int>> radius;
-                radius.push_back({tmpX, tmpY});
+                vector<vector<char>> tmpMaze = maze;
+                bool flag = true;
+                queue<vector<int>> q;
+                q.push({tmpX, tmpY});
                 if(maze[tmpX][tmpY] == '['){
-                    radius.push_back({tmpX, tmpY + 1});
+                    q.push({tmpX, tmpY + 1});
                 }
                 else if(maze[tmpX][tmpY] == ']'){
-                    radius.push_back({tmpX, tmpY - 1});
+                    q.push({tmpX, tmpY - 1});
                 }
-                while(radius.empty()){
-                    int currX = radius.front()[0];
-                    int currY = radius.front()[1];
-                    radius.erase(radius.begin());
-                    int nextX = currX + lookup[dir[i]][0];
-                    if(maze[nextX][currY] == '#'){
+                while(!q.empty()){
+                    int currX = q.front()[0];
+                    int currY = q.front()[1];
+                    cout << "popping " << currX << " " << currY << endl;
+                    q.pop();
+
+                    if(tmpMaze[currX + lookup[dir[i]][0]][currY] == '#'){
+                        flag = false;
                         break;
                     }
-                    if(maze[nextX][currY] != maze[currX][currY]){
-                        if(maze[nextX][currY] == '['){
-                            radius.push_back({nextX, currY + 1});
+                    else if(tmpMaze[currX + lookup[dir[i]][0]][currY] == '[' || tmpMaze[currX + lookup[dir[i]][0]][currY] == ']'){
+                        q.push({currX + lookup[dir[i]][0], currY});
+                        cout << "pushing " << currX + lookup[dir[i]][0] << " " << currY << endl;
+                        if(tmpMaze[currX + lookup[dir[i]][0]][currY] == '['){
+                            q.push({currX + lookup[dir[i]][0], currY + 1});
+                            cout << "pushing " << currX + lookup[dir[i]][0] << " " << currY + 1 << endl;
                         }
-                        else if(maze[nextX][currY] == ']'){
-                            radius.push_back({nextX, currY - 1});
+                        else if(tmpMaze[currX + lookup[dir[i]][0]][currY] == ']'){
+                            q.push({currX + lookup[dir[i]][0], currY - 1});
+                            cout << "pushing " << currX + lookup[dir[i]][0] << " " << currY - 1<< endl;
                         }
-                        radius.push_back({nextX, currY});
                     }
-                    if(maze[nextX][currY] == maze[currX][currY]){
-                        radius.push_back({nextX, currY});
+                    tmpMaze[currX + lookup[dir[i]][0]][currY] = maze[currX][currY];
+                    tmpMaze[currX][currY] = maze[currX - lookup[dir[i]][0]][currY];
+                    cout << maze[currX][currY] << endl;
+                }
+                if(flag){
+                    if(maze[tmpX][tmpY] == '['){
+                        tmpMaze[tmpX][tmpY + 1] = '.';
                     }
+                    else if(maze[tmpX][tmpY] == ']'){
+                        tmpMaze[tmpX][tmpY - 1] = '.';
+                    }
+                    maze = tmpMaze;
+                    robot[0] = tmpX;
+                    robot[1] = tmpY;
                 }
             }
         }
@@ -278,6 +297,7 @@ int main(int argc, char* argv[]) {
 
     if(part == 2) {
         simulate2(maze, dir, robot);
+        maze[robot[0]][robot[1]] = '@';
 
         for (int i = 0; i < maze.size(); i++) {
             for (int j = 0; j < maze[0].size(); j++) {
